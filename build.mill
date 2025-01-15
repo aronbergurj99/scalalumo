@@ -1,0 +1,7 @@
+//// SNIPPET:BUILD
+package build
+import mill._, scalalib._
+
+object scalalumo extends ScalaModule {
+  def scalaVersion = "3.3.4"
+}

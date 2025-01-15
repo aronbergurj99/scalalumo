@@ -1,0 +1,9 @@
+# LSP
+.bloop/
+.metals/
+
+# Mil
+out/
+
+# vscode
+.vscode
