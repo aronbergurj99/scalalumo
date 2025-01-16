@@ -1,5 +1,5 @@
 
-export type Option = {
-    path?: string,
-    package?: string,
+export type Options = {
+    output: string,
+    packageName: string,
 }

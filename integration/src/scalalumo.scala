@@ -1,4 +1,4 @@
-package lumoutil
+package scalalumo
 
 import scala.quoted.*
 import scala.annotation.unused
@@ -58,7 +58,6 @@ def slumoImpl(lumoExpr: Expr[LumoUtil])(using Quotes): Expr[String] = {
 
     while (stack.nonEmpty) {
       stack.headOption.foreach { (currentTerm, currentPrefix ) =>
-        println(s"term: $currentTerm, prefix: $currentPrefix")
         stack = stack.drop(1)
 
         currentTerm match

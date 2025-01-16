@@ -5,6 +5,7 @@ import css, { Rule, Comment, AtRule } from "css";
 import Handlebars from 'handlebars';
 
 import styles from './styles.js';
+import { Options } from './types.js';
 
 type RuleProperty = Rule | Comment | AtRule;
 
@@ -143,12 +144,13 @@ function lumoUtility(selectors: string[]): string[] {
 }
 
 
-export function generateContent(options: Object): string {
+export function generateContent(options: Options): string {
   const flattenedRules = flattenRules(parsedCss.stylesheet?.rules || [])
   const qualifiedSelectors = rulesToQualifiedSelectors(flattenedRules)
 
 
   return template({
+    packageName: options.packageName,
     modifiers: MODIFIERS,
     standards: lumoUtility(qualifiedSelectors),
     withBreakpoints: withBreakpoints(qualifiedSelectors)
@@ -160,6 +162,6 @@ export function writeToDisk(path: string, content: string) {
   fs.writeFileSync(path, content, 'utf8');
 }
 
-export default function generate(options: Object): void {
-  writeToDisk("./scalalumo.scala", generateContent({}))
+export default function generate(options: Options): void {
+  writeToDisk(options.output, generateContent(options))
 }
