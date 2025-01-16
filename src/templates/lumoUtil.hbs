@@ -7,12 +7,18 @@ case class LumoUtil() {
     {{/each}}
 
     {{#each standards}}
-    def {{this}}: LumoUtil = this
+    /**
+    * class: {{this.cssClass}}
+    */
+    def {{this.name}}: LumoUtil = this
     {{/each}}
 }
 
 case class BreakPoint() {
     {{#each withBreakpoints}}
-    def {{this}}: BreakPoint = this
+    /**
+    * class: {{this.cssClass}}
+    */
+    def {{this.name}}: BreakPoint = this
     {{/each}}
 }

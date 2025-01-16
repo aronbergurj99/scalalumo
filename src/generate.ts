@@ -11,8 +11,6 @@ type RuleProperty = Rule | Comment | AtRule;
 
 const MODIFIERS = ['xxl', 'xl', 'lg', 'md', 'sm']
 
-const METHOD_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-
 function readTemplate(filename: String) {
   return fs.readFileSync(path.join(import.meta.dirname, `./templates/${filename}.hbs`), "utf-8")
 }
@@ -69,22 +67,22 @@ export function toCamelCase(methodName: string) {
   return methodName
 }
 
-function isValidMethodName(name: string) {
-  return METHOD_NAME_PATTERN.test(name);
+type MethodData = {
+  name: string,
+  cssClass: string, 
 }
 
-const lumoClassToScalaMethod = (s: String, camelCase = false) => {
+const lumoClassToScalaMethod = (s: string, camelCase = false): MethodData => {
   let methodName = s.replace(/-/g, '_').replace(/^\@/, '$').replace(/%/, '')
 
   if(camelCase) {
     methodName = toCamelCase(methodName)
   }
 
-  if(isValidMethodName(methodName)) {
-    return methodName
+  return {
+    name: methodName,
+    cssClass: s,
   }
-
-  return "\`"+ methodName + "\`"
 };
 
 function rulesToQualifiedSelectors(rules: Rule[]): string[] {
@@ -113,21 +111,26 @@ function rulesToQualifiedSelectors(rules: Rule[]): string[] {
   })
 }
 
-function withBreakpoints(selectors: string[]): string[] {
-  const results = new Set<string>()
+function withBreakpoints(selectors: string[]): MethodData[] {
+  const results = new Map<string, MethodData>()
 
   selectors.forEach(selector => {
     const split = selector.split(":")
     if (split.length > 1) {
-      results.add(lumoClassToScalaMethod(split[1], true))
+      const methodData = lumoClassToScalaMethod(split[1], true)
+
+      if (!results.has(methodData.name)) {
+        results.set(methodData.name, methodData)     
+      }
+
     }
   })
 
-  return Array.from(results)
+  return Array.from(results.values())
 }
 
-function lumoUtility(selectors: string[]): string[] {
-  const results: string[] = []
+function lumoUtility(selectors: string[]): MethodData[] {
+  const results: MethodData[] = []
 
   selectors.forEach(selector => {
     if (!selector.includes(":")) {
