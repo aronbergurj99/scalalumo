@@ -5,7 +5,7 @@ object Intergration {
   
   def main(args: Array[String]): Unit = 
 
-    val classNames: String = lumo.mXl.pL.flex.flexCol.md(lumobp.itemsCenter)
+    val classNames: String = lumo.bgPrimary.mM.shadowM.flex.flexRow.md(lumobp.flexCol.text2xl)
      
     println(classNames)
 }
