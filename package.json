@@ -6,7 +6,6 @@
     "dist"
   ],
   "main": "./dist/index.js",
-  "bin": "./dist/index.js",
   "type": "module",
   "keywords": [
     "scala",
