@@ -1,4 +1,4 @@
-# Scalalimo
+# Scalalumo
 Zero-Runtime Typesafe Vaadin Lumo Utility classes in Scala inspired by [scalawind](https://github.com/nguyenyou/scalawind)
 
 ## How to use
@@ -25,7 +25,8 @@ Then, `import scalalumo.*` and you're ready to go.
 import scalalumo.*
 
 div(
-  cls := lumo.bgPrimary.mM.shadowM.flex.flexRow.md(lumobp.flexCol.text2xl).css,
+  cls := lumo.bgPrimary.mM.shadowM.flex.flexRow
+            .md(lumobp.flexCol.text2xl).css,
   ...
 )
 
