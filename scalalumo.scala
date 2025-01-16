@@ -1,4 +1,4 @@
-package lumoutil
+package scalalumo
 
 import scala.quoted.*
 import scala.annotation.unused

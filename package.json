@@ -15,18 +15,18 @@
     "lumo"
   ],
   "scripts": {
-    "build": "swc src --out-dir dist --copy-files --delete-dir-on-start"
+    "build": "npm run clean && tsc && npm run copy-files",
+    "copy-files": "cp -r src/templates dist/",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@vaadin/vaadin-lumo-styles": "^24.6.2",
     "css": "^3.0.0",
     "handlebars": "^4.7.8"
   },
-  "devDependencies": {
-    "@types/node": "^22.10.6",
-    "@swc/cli": "^0.6.0",
-    "@swc/core": "^1.10.7",
+  "devDependencies": {  
     "@types/css": "^0.0.38",
+    "@types/node": "^22.10.6",
     "typescript": "~5.6.2"
   }
 }
