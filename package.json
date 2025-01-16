@@ -19,6 +19,21 @@
     "copy-files": "cp -r src/templates dist/",
     "clean": "rm -rf dist"
   },
+  "contributors": [
+    {
+      "name": "Aron Bergur Johannsson",
+      "url": "https://github.com/aronbergurj99"
+    }
+  ],
+  "author": "Aron Bergur Johannsson",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/aronbergurj99/scalalumo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aronbergurj99/scalalumo"
+  },
   "dependencies": {
     "@vaadin/vaadin-lumo-styles": "^24.6.2",
     "commander": "^13.0.0",
