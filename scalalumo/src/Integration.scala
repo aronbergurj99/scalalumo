@@ -1,10 +1,9 @@
 package scalalumo
 
 object Intergration {
-  import scalalumo.*
+  import lumoutil.*
   
-
   def main(args: Array[String]): Unit = 
-    val myString: String = lumo.bg_base.bg_transparent.md(lumobps.flex_col.flex_col)
+    val myString: String = lumo.bgBase.bgTransparent.md(lumobp.grid.flexCol).xxl(lumobp.fixed).negMXs
     println(myString)
 }

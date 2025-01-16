@@ -53,44 +53,111 @@ function flattenRules(rules: RuleProperty[]): Rule[] {
 
 const flattenedRules = flattenRules(parsedCss.stylesheet?.rules || []);
 
+const methodNamePattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+export function toCamelCase(methodName: string) {
+  // if method name is in shape w_1/2
+  const percentRegex = /[a-z]_([0-9]+\/[0-9]+)/g
+  const dotRegex = /[a-z]_([0-9]+\.[0-9]+)/g
+  if (percentRegex.test(methodName) || dotRegex.test(methodName)) {
+      return methodName
+  }
+  let hasLeadingUnderscore = methodName.startsWith('_')
+  // if method name is leading with underscore, preserve it and transform the rest
+  if (hasLeadingUnderscore) {
+      methodName = methodName.slice(1)
+  }
+
+  methodName = methodName.replace(/_([a-z])/g, (_, letter) => {
+      return letter.toUpperCase()
+  })
+
+  methodName = methodName.replace(/_([0-9])/g, "$1")
+
+  if (hasLeadingUnderscore) {
+      methodName = "_" + methodName
+  }
+
+  return methodName
+}
+
+function isValidMethodName(name: string) {
+  return methodNamePattern.test(name);
+}
+
+const lumoClassToScalaMethod = (s: String, camelCase = false) => {
+  let methodName = s.replace(/-/g, '_').replace(/^\@/, '$').replace(/%/, '')
+
+  if(camelCase) {
+    methodName = toCamelCase(methodName)
+  }
+
+  if(isValidMethodName(methodName)) {
+    return methodName
+  }
+
+  return "\`"+ methodName + "\`"
+};
+
 function cleanSelectors(rules: Rule[]): string[] {
-  const cleanedSelectors: string[] = []
-  rules.forEach(rule => {
-    let fixed = rule.selectors![0].replace(/\\(\d+|.)/g, (_, group) => {
-      if (Number.isInteger(Number(group))) {
-        return String.fromCharCode(parseInt(group, 16));
-      }
-  
-      if (group == "i") {
-        // Bug in vaadin
-        return ":i";
-      }
-  
-      return group;
-    });
+  // Remove unwanted characters and fix bug in vaadin
+  return rules.map(rule => rule.selectors![0].replace(/\\(\d+|.)/g, (_, group) => {
+    if (Number.isInteger(Number(group))) {
+      return String.fromCharCode(parseInt(group, 16));
+    }
 
+    if (group == "i") {
+      // Bug in vaadin
+      return ":i";
+    }
 
+    return group;
+  })).filter(value => {
+    // There are still some unwanted selectors that need to be filtererd out.
 
-    if (fixed.split(/[\s:]+/).length == 1) {
-      if (fixed[0] === ".") {
-        fixed = fixed.substring(1) // remove .
-  
-        if (fixed[0] === '-') {
-          fixed = "neg" + fixed
-        }
-  
-        fixed = fixed.replace(/-/g, "_")
-        cleanedSelectors.push(fixed)
-      }
+    // Remove selectors that are multiple selectors
+    if (value.split(/\s+/).length > 1) {
+      return false
+    }
+
+    // Remove selectors that don't start with .
+    return value[0] === "."
+  })
+}
+
+function withBreakpoints(selectors: string[]): string[] {
+  const results = new Set<string>()
+
+  selectors.forEach(selector => {
+    const split = selector.split(":")
+    if (split.length > 1) {
+      results.add(lumoClassToScalaMethod(split[1], true))
     }
   })
 
-  return cleanedSelectors
+  return Array.from(results)
+}
+
+function lumoUtility(selectors: string[]): string[] {
+  const results: string[] = []
+
+  selectors.forEach(selector => {
+    if (!selector.includes(":")) {
+      let withoutDot = selector.substring(1)
+      if (withoutDot[0] === "-") {
+        withoutDot = "neg" + withoutDot
+      }
+
+      results.push(lumoClassToScalaMethod(withoutDot, true))
+    }
+  })
+
+  return results
 }
 
 const cleanedSelectors = cleanSelectors(flattenedRules)
 
-const modifiers = ['2xl', 'xl', 'lg', 'md', 'sm']
+const modifiers = ['xxl', 'xl', 'lg', 'md', 'sm']
 
 function readTemplate(filename: String) {
   return fs.readFileSync(path.join(import.meta.dirname, `./templates/${filename}.hbs`), "utf-8")
@@ -101,8 +168,16 @@ Handlebars.registerPartial({
   lumoUtil: Handlebars.compile(readTemplate("lumoUtil"))
 })
 
-const compiledHtml = Handlebars.compile(readTemplate("scalalumo"))({
+
+const content = Handlebars.compile(readTemplate("scalalumo"))({
   modifiers,
-  standards: cleanedSelectors,
+  standards: lumoUtility(cleanedSelectors),
+  withBreakpoints: withBreakpoints(cleanedSelectors),
 });
-console.log(compiledHtml)
+
+
+export function writeToDisk(path: string, content: string) {
+  fs.writeFileSync(path, content, 'utf8');
+}
+
+writeToDisk("./scalalumo.scala", content)

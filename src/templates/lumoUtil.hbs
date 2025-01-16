@@ -1,5 +1,5 @@
 val lumo   = LumoUtil()
-val lumpbp = BreakPoint()
+val lumobp = BreakPoint()
 
 case class LumoUtil() {
     {{#each modifiers}}
@@ -8,5 +8,11 @@ case class LumoUtil() {
 
     {{#each standards}}
     def {{this}}: LumoUtil = this
+    {{/each}}
+}
+
+case class BreakPoint() {
+    {{#each withBreakpoints}}
+    def {{this}}: BreakPoint = this
     {{/each}}
 }

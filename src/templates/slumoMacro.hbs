@@ -1,1 +1,89 @@
-partially appplied :)
+extension (inline lumoUtil: LumoUtil) {
+  inline def css: String =
+    ${ slumoImpl('lumoUtil)}
+}
+
+implicit inline def slumo(inline lumoUtil: LumoUtil): String =
+  ${ slumoImpl('lumoUtil)}
+
+def convertCamelCaseToSnakeCase(methodName: String): String = {
+  val step1 = "[A-Z]".r.replaceAllIn(
+    methodName,
+    m => s"_${m.group(0).toLowerCase}"
+  )
+
+  val step2 = "([a-z]+)([0-9]+)".r.replaceAllIn(
+    step1,
+    m => {
+      val p1 = m.group(1)
+      val p2 = m.group(2)
+      s"${p1}_${p2}"
+    }
+  )
+
+  val step3 = "_([a-z]+)([0-9]+)".r.replaceAllIn(
+    step2,
+    m => {
+      val p1 = m.group(1)
+      val p2 = m.group(2)
+      s"_${p1}_${p2}"
+    }
+  )
+
+  step3.toLowerCase
+}
+
+def replaceNegPrefix(input: String): String =
+  if input.startsWith("neg-") then input.replaceFirst("^neg-", "-")
+  else input
+
+def methodNameToLumoUtilitiesClass(rawName: String) = {
+  if (rawName == "xxl")
+  then "2xl"
+  else replaceNegPrefix(convertCamelCaseToSnakeCase(rawName).replace("_", "-"))
+}
+
+def slumoImpl(lumoExpr: Expr[LumoUtil])(using Quotes): Expr[String] = {
+  import quotes.reflect.*
+
+  def extractClassNames(term: Term, prefix: String = ""): List[String] = {
+    var stack = List((term, prefix))
+    var classNames = List.empty[String]
+
+    while (stack.nonEmpty) {
+      stack.headOption.foreach { (currentTerm, currentPrefix ) =>
+        println(s"term: $currentTerm, prefix: $currentPrefix")
+        stack = stack.drop(1)
+
+        currentTerm match
+          case Inlined(_, _, inner) => {
+            stack = (inner, currentPrefix) :: stack
+          }
+          case Select(inner, name) => {
+            val methodName = methodNameToLumoUtilitiesClass(name)
+            val className = s"$currentPrefix${methodName}"
+            classNames = classNames :+ className
+            stack = (inner, currentPrefix) :: stack
+          }
+          case Ident("lumo") => {}
+          case Ident("lumobp") => {}
+          case Apply(Select(inner, name), args) => {
+            val methodName = methodNameToLumoUtilitiesClass(name)
+            val innerClasses = args.flatMap(arg => extractClassNames(arg, s"$currentPrefix${methodName}:"))
+            classNames = classNames ++ innerClasses
+            stack = (inner, currentPrefix) :: stack
+          }
+          case unexpectedTerm =>
+            report.errorAndAbort(s"Unexpected term: $unexpectedTerm")
+      }
+    }
+
+    classNames
+  }
+
+  val term = lumoExpr.asTerm
+  val classNames = extractClassNames(term).reverse
+  val combinedClasses = classNames.mkString(" ")
+  Expr(combinedClasses)
+}
+
